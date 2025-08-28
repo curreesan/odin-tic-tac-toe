@@ -19,3 +19,7 @@ const Gameboard = (function() {
 
     return {getBoard, placeMark, isFull, reset};
 })();
+
+const Player = (name, mark) => {
+    return {name, mark};
+};
