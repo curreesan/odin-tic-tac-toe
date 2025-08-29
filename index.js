@@ -85,6 +85,8 @@ const GameController = (function() {
     }
 
     const getWinner = () => {
+       if (!player1 || !player2) return null;
+
        if (checkWin(player1.mark)) {
         return player1;
        } else if (checkWin(player2.mark)) {
@@ -96,3 +98,110 @@ const GameController = (function() {
 
     return {startGame, playTurn, getCurrentPlayer, isGameOver, getWinner}
 })();
+
+const DisplayController = (function() {
+    // DOM references and game state in IIFE scope
+    let startButton, resetButton, playerXInput, playerOInput, gameContainer, gameStatus;
+    let gameActive = false;
+
+    // Initialize DOM elements and event listeners
+    const init = () => {
+        startButton = document.querySelector('.start');
+        resetButton = document.querySelector('.reset');
+        playerXInput = document.querySelector('.x-player-name');
+        playerOInput = document.querySelector('.o-player-name');
+        gameContainer = document.querySelector('.game-container');
+        gameStatus = document.querySelector('.game-status');
+
+        // Attach event listeners
+        startButton.addEventListener('click', handleStartGame);
+        resetButton.addEventListener('click', handleResetGame);
+        gameContainer.addEventListener('click', handleCellClick);
+
+        // Initial render and status
+        renderBoard();
+        updateStatus();
+    };
+
+    // Render the gameboard to the DOM
+    const renderBoard = () => {
+        const board = Gameboard.getBoard();
+        const cells = gameContainer.querySelectorAll('.cell');
+        cells.forEach((cell, index) => {
+            cell.textContent = board[index]; // Display X, O, or empty
+        });
+    };
+
+    // Handle cell clicks using event delegation
+    const handleCellClick = (event) => {
+        if (!event.target.classList.contains('cell') || !gameActive) return;
+
+        const index = parseInt(event.target.getAttribute('data-cell-number'));
+        const result = GameController.playTurn(index);
+
+        if (result === 'invalid') {
+            // Show temporary feedback for invalid move
+            gameStatus.textContent = 'Cell already taken!';
+            setTimeout(updateStatus, 1000); // Revert to normal status after 1 second
+            return;
+        }
+
+        renderBoard();
+        updateStatus();
+
+        if (result === 'win' || result === 'tie') {
+            gameActive = false;
+            playerXInput.disabled = false;
+            playerOInput.disabled = false;
+        }
+    };
+
+    // Start a new game
+    const handleStartGame = () => {
+        const player1Name = playerXInput.value.trim() || 'Player X';
+        const player2Name = playerOInput.value.trim() || 'Player O';
+
+        GameController.startGame(player1Name, player2Name);
+        gameActive = true;
+        playerXInput.disabled = true;
+        playerOInput.disabled = true;
+
+        renderBoard();
+        updateStatus();
+    };
+
+    // Reset the game
+    const handleResetGame = () => {
+        const player1Name = playerXInput.value.trim() || 'Player X';
+        const player2Name = playerOInput.value.trim() || 'Player O';
+
+        GameController.startGame(player1Name, player2Name);
+        gameActive = true;
+        playerXInput.disabled = true;
+        playerOInput.disabled = true;
+
+        renderBoard();
+        updateStatus();
+    };
+
+    // Update the game status message
+    const updateStatus = () => {
+        if (!gameActive) {
+            const winner = GameController.getWinner();
+            if (winner === 'tie') {
+                gameStatus.textContent = "It's a tie!";
+            } else if (winner == "win") {
+                gameStatus.textContent = `${winner.name} (${winner.mark}) wins!`;
+            } else {
+                gameStatus.textContent = 'Enter names to start!';
+            }
+        } else {
+            const currentPlayer = GameController.getCurrentPlayer();
+            gameStatus.textContent = `${currentPlayer.name}'s turn (${currentPlayer.mark})`;
+        }
+    };
+
+    return { init };
+})();
+
+DisplayController.init();
