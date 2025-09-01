@@ -63,16 +63,6 @@ const GameController = (function() {
 
     const checkWin = (currPlayerMark) => {
         let currentBoard = Gameboard.getBoard();
-
-        // for (let combo = 0; combo < winningCombos.length; combo++) {
-        //     let [first, second, third] = winningCombos[combo];
-
-        //     if ((currentBoard[first] === currPlayerMark) && (currentBoard[second] === currPlayerMark) && (currentBoard[third] == currPlayerMark)) {
-        //         return true; 
-        //     } 
-        // }
-        // return false;
-
         return winningCombos.some(combo => combo.every(index => currentBoard[index] === currPlayerMark))
     }
 
@@ -146,14 +136,14 @@ const DisplayController = (function() {
             return;
         }
 
-        renderBoard();
-        updateStatus();
-
         if (result === 'win' || result === 'tie') {
             gameActive = false;
             playerXInput.disabled = false;
             playerOInput.disabled = false;
         }
+
+        renderBoard();
+        updateStatus();
     };
 
     // Start a new game
@@ -190,7 +180,8 @@ const DisplayController = (function() {
             const winner = GameController.getWinner();
             if (winner === 'tie') {
                 gameStatus.textContent = "It's a tie!";
-            } else if (winner == "win") {
+            } else if (winner) {
+                console.log(winner);
                 gameStatus.textContent = `${winner.name} (${winner.mark}) wins!`;
             } else {
                 gameStatus.textContent = 'Enter names to start!';
